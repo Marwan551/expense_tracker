@@ -4,6 +4,7 @@ A modern, offline-first Flutter application built with Clean Architecture, River
 
 ---
 
+
 ## Features
 
 - **Expense Management**: Add, edit, and delete expenses with amount validation, category selection, date pickers, and optional notes.
