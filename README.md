@@ -1,73 +1,57 @@
 # Expense Tracker
 
-A modern, offline-first Flutter application built with Clean Architecture, Riverpod state management, and Drift reactive SQLite database.
+An offline-first Flutter portfolio app for recording expenses, filtering them by date and category, and viewing monthly totals. It uses Riverpod for state/dependency wiring and Drift with SQLite for local storage.
 
----
+## Implemented in the source
 
+- Add, edit and delete expenses with a positive-integer amount, category, date and optional note.
+- Date filters for all entries, the current week, current month or an inclusive custom date range.
+- Category filtering and newest-first results.
+- Monthly totals, category totals and percentage breakdowns.
+- Local database streams, grouped expense lists and a delete/undo interaction.
 
-## Features
+## Architecture
 
-- **Expense Management**: Add, edit, and delete expenses with amount validation, category selection, date pickers, and optional notes.
-- **Swipe-to-Dismiss with Undo**: Easily delete expenses with a left-swipe gesture, featuring an immediate Undo action in a SnackBar.
-- **Advanced Filtering**: Filter expenses by date (`All`, `This Week`, `This Month`, `Custom Date Range`) and category.
-- **Monthly Summary & Analytics**: View total monthly spending along with categorical breakdowns, percentage shares, and progress indicators.
-- **Reactive Stream Storage**: Real-time UI updates backed by Drift SQLite database streams.
+- [Domain](lib/features/expenses/domain/): expense entity, repository contract and use cases.
+- [Data](lib/features/expenses/data/): Drift data source, models and repository implementation.
+- [Presentation](lib/features/expenses/presentation/): screens, widgets and Riverpod providers.
+- [Database](lib/core/database/app_database.dart): table definition and database connection.
 
----
+## Local setup
 
-## Architecture Rationale
+Use a Flutter SDK with Dart 3.13.5 or later within Dart 3.x, as declared by `pubspec.yaml`. The tests below were checked with Flutter 3.50.1 / Dart 3.14.0 on Linux.
 
-This project follows **Clean Architecture** principles to separate concerns, enforce maintainability, and ensure testability:
+```sh
+git clone https://github.com/Marwan551/expense_tracker.git
+cd expense_tracker
+flutter pub get
+flutter analyze
+flutter test
+```
 
-1. **Domain Layer (`domain/`)**: 
-   - Contains pure business logic, entities ([Expense](file:///F:/expense_tracker/lib/features/expenses/domain/entities/expense.dart)), repository interfaces ([ExpenseRepository](file:///F:/expense_tracker/lib/features/expenses/domain/repositories/expense_repository.dart)), and **Use Cases** (`SaveExpense`, `DeleteExpense`, `WatchExpenses`, `FilterExpenses`, `CalculateMonthlySummary`).
-   - Independent of any external frameworks or UI.
+The generated Drift file is tracked. Regenerate it when the schema or generated models change:
 
-2. **Data Layer (`data/`)**: 
-   - Implements local data sources using Drift ([ExpenseDatabase](file:///F:/expense_tracker/lib/features/expenses/data/datasources/expense_local_data_source.dart)), repository implementations ([ExpenseRepositoryImpl](file:///F:/expense_tracker/lib/features/expenses/data/repositories/expense_repository_impl.dart)), and data models ([ExpenseModel](file:///F:/expense_tracker/lib/features/expenses/data/models/expense_model.dart)).
+```sh
+dart run build_runner build --delete-conflicting-outputs
+```
 
-3. **Presentation Layer (`presentation/`)**: 
-   - Handles UI screens ([ExpenseListScreen](file:///F:/expense_tracker/lib/features/expenses/presentation/screens/expense_list_screen.dart), [ExpenseFormScreen](file:///F:/expense_tracker/lib/features/expenses/presentation/screens/expense_form_screen.dart), [MonthlySummaryScreen](file:///F:/expense_tracker/lib/features/expenses/presentation/screens/monthly_summary_screen.dart)), reusable widgets, state notifiers ([ExpenseNotifier](file:///F:/expense_tracker/lib/features/expenses/presentation/providers/expense_notifier.dart)), and Riverpod providers.
+To launch on a configured device or emulator, run `flutter doctor`, then `flutter run`. Local unit tests do not establish that every target platform has been launched successfully.
 
----
+## Tests
 
-## Packages Chosen & Why
+```sh
+flutter test test/expense_domain_test.dart
+```
 
-* **`flutter_riverpod`**: Chosen for compile-time safe, testable, and reactive state management and dependency injection without needing BuildContext.
-* **`drift` & `sqlite3_flutter_libs`**: Chosen for type-safe, performant, and reactive local SQLite database storage with automatic stream generation.
-* **`flutter_test`**: Used for unit and widget testing infrastructure.
+Nine domain tests cover category/date filtering, newest-first ordering, unchanged input ordering, complete end-day inclusion, Monday-to-Sunday week boundaries, invalid custom ranges, monthly/category totals, empty data and December-to-January boundaries. The unrelated generated counter test has been removed.
 
----
+These tests do not cover database persistence, widget interactions or end-to-end device behavior. Static analysis currently reports existing informational deprecation diagnostics, so it is not warning-free.
 
-## Setup & Getting Started
+## Amounts and current limitations
 
-### Prerequisites
-- [Flutter SDK](https://docs.flutter.dev/get-started/install) (^3.x.x)
-- Dart SDK
+The current form accepts positive whole integers and displays them directly with a `$` prefix. It does not convert minor units to major units. Some internal summary names still say `Piasters`; those names do not match the display semantics and should not be treated as multi-currency support.
 
-### Steps to Run
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd expense_tracker
-   ```
-2. Install dependencies:
-   ```bash
-   flutter pub get
-   ```
-3. Run code generation (for Drift database tables):
-   ```bash
-   flutter pub run build_runner build --delete-conflicting-outputs
-   ```
-4. Run the application:
-   ```bash
-   flutter run
-   ```
-
----
-
-## Known Limitations & Future Improvements
-
-- **Local Storage Only**: Currently, data is stored exclusively on-device in a local SQLite database (Drift). Cloud synchronization / authentication could be added in future versions.
-- **Currency Support**: Currently operates in a single currency model (stored in piasters/cents). Multi-currency conversion could be added.
-- **Export/Import**: CSV/PDF export of expense reports is planned for a future release.
+- On-device storage only; no cloud sync or user authentication.
+- No decimal-amount or currency-selection workflow.
+- CSV/PDF export is not implemented.
+- Screenshots, a recorded walkthrough and device-level verification remain to be added.
